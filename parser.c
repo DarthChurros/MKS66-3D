@@ -222,6 +222,10 @@ void parse_file ( char * filename,
       display( s );
     }//end display
 
+    else if (!strncmp(line, "clear", strlen(line))) {
+      edges->lastcol = 0;
+    }
+
     else if ( strncmp(line, "save", strlen(line)) == 0 ) {
       //printf("SAVE\t%s", line);
       fgets(line, sizeof(line), f);
