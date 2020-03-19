@@ -127,7 +127,13 @@ struct matrix * generate_sphere(double cx, double cy, double cz,
 void add_torus( struct matrix * edges,
                 double cx, double cy, double cz,
                 double r1, double r2, int step ) {
-  return;
+  struct matrix* torus = generate_torus(cx, cy, cz, r1, r2, step);
+
+  int i;
+  for (i = 0; i < torus->lastcol; i++) {
+    add_edge(edges, torus->m[0][i],torus->m[1][i],torus->m[2][i],
+            torus->m[0][i],torus->m[1][i],torus->m[2][i]);
+  }
 }
 
 /*======== void generate_torus() ==========
@@ -135,7 +141,8 @@ void add_torus( struct matrix * edges,
             double cx
             double cy
             double cz
-            double r
+            double r1
+            double r2
             int step
   Returns: Generates all the points along the surface
            of a torus with center (cx, cy, cz),
@@ -145,7 +152,34 @@ void add_torus( struct matrix * edges,
   ====================*/
 struct matrix * generate_torus( double cx, double cy, double cz,
                                 double r1, double r2, int step ) {
-  return NULL;
+
+  struct matrix* torus = new_matrix(4,step*step);
+
+
+  int i;
+
+  struct matrix* rotate = new_matrix(4, 4);
+  ident(rotate);
+  matrix_mult(make_translate(-cx, -cy, -cz), rotate);
+  matrix_mult(make_rotY(2*M_PI/step), rotate);
+  matrix_mult(make_translate(cx, cy, cz), rotate);
+
+  for (i = 0; i < step; i++) {
+    double x, y, t;
+    int j;
+
+    x = r2 + cx + r1;
+    y = cy;
+    for (j=1; j<=step; j++) {
+      t = (double)j/step;
+      add_point(torus, x, y, cz);
+      x = r2 * cos(2 * M_PI * t) + cx + r1;
+      y = r2 * sin(2 * M_PI * t) + cy;
+    }
+    matrix_mult(rotate, torus);
+  }
+
+  return torus;
 }
 
 /*======== void add_circle() ==========
@@ -167,6 +201,7 @@ void add_circle( struct matrix *edges,
   y0 = cy;
   for (i=1; i<=step; i++) {
     t = (double)i/step;
+    
     x1 = r * cos(2 * M_PI * t) + cx;
     y1 = r * sin(2 * M_PI * t) + cy;
 
