@@ -62,24 +62,12 @@ void add_box( struct matrix * edges,
 void add_sphere( struct matrix * edges,
                  double cx, double cy, double cz,
                  double r, int step ) {
-  double x = cx;
-  double y = cy + r;
+  struct matrix* sphere = generate_sphere(cx, cy, cz, r, step);
+
   int i;
-
-  struct matrix* rotate = new_matrix(4, 4);
-  ident(rotate);
-  matrix_mult(make_translate(-cx, -cy, -cz), rotate);
-  matrix_mult(make_rotY(2*M_PI/step), rotate);
-  matrix_mult(make_translate(cx, cy, cz), rotate);
-
-  for (i = 0; i < step; i++) {
-    int j;
-    for (j = 0; j < step; j++) {
-      add_edge(edges, x, y, 0, x, y, 0);
-      x = cx + r * sin(j*M_PI/step);
-      y = cy + r * cos(j*M_PI/step);
-    }
-    matrix_mult(rotate, edges);
+  for (i = 0; i < sphere->lastcol; i++) {
+    add_edge(edges, sphere->m[0][i],sphere->m[1][i],sphere->m[2][i],
+            sphere->m[0][i],sphere->m[1][i],sphere->m[2][i]);
   }
 }
 
@@ -97,7 +85,28 @@ void add_sphere( struct matrix * edges,
   ====================*/
 struct matrix * generate_sphere(double cx, double cy, double cz,
                                 double r, int step ) {
-  return NULL;
+  struct matrix* sphere = new_matrix(4, step*step);
+  double x = cx;
+  double y = cy + r;
+  int i;
+
+  struct matrix* rotate = new_matrix(4, 4);
+  ident(rotate);
+  matrix_mult(make_translate(-cx, -cy, -cz), rotate);
+  matrix_mult(make_rotY(2*M_PI/step), rotate);
+  matrix_mult(make_translate(cx, cy, cz), rotate);
+
+  for (i = 0; i < step; i++) {
+    int j;
+    for (j = 0; j < step; j++) {
+      add_point(sphere, x, y, 0);
+      x = cx + r * sin(j*M_PI/step);
+      y = cy + r * cos(j*M_PI/step);
+    }
+    matrix_mult(rotate, sphere);
+  }
+
+  return sphere;
 }
 
 /*======== void add_torus() ==========
